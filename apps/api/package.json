@@ -9,6 +9,9 @@
     "type-check": "tsc --noEmit",
     "seed": "ts-node src/seed.ts"
   },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

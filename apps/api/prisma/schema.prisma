@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,62 +8,46 @@ datasource db {
 }
 
 model User {
-  id         Int      @id @default(autoincrement())
-  email      String   @unique
+  id         Int       @id @default(autoincrement())
+  email      String    @unique
   password   String
   name       String
   phone      String?
-  created_at DateTime @default(now())
-  
-  // Relations
+  created_at DateTime  @default(now())
   bookings   Booking[]
 }
 
 model Station {
-  id            Int     @id @default(autoincrement())
+  id            Int       @id @default(autoincrement())
   name          String
   address       String
-  total_slots   Int     @default(5)
-  price_per_kwh Decimal @default(8.00)
-  is_active     Boolean @default(true)
-  
-  // Relations
+  total_slots   Int       @default(5)
+  price_per_kwh Decimal   @default(8.00)
+  is_active     Boolean   @default(true)
   bookings      Booking[]
 }
 
 model Booking {
-  id                Int      @id @default(autoincrement())
-  user_id           Int
-  station_id        Int
-  token_number      String   @unique
-  slot_number       Int
-  
-  // Vehicle info (captured at booking time)
-  vehicle_model     String
-  current_battery   Int
-  target_battery    Int
-  predicted_duration Int
-  
-  // Booking timing
-  booking_time      DateTime @default(now())
-  slot_start_time   DateTime
+  id                   Int      @id @default(autoincrement())
+  user_id              Int
+  station_id           Int
+  token_number         String   @unique
+  slot_number          Int
+  vehicle_model        String
+  current_battery      Int
+  target_battery       Int
+  predicted_duration   Int
+  booking_time         DateTime @default(now())
+  slot_start_time      DateTime
   arrival_window_start DateTime
   arrival_window_end   DateTime
-  
-  // Payment
-  advance_payment_id String?
-  advance_amount     Decimal?
-  
-  // 4-Digit Verification Codes (Generated at booking time)
-  start_code        Int      // 4-digit code to start charging
-  end_code          Int      // 4-digit code to end charging
-  start_code_used   Boolean  @default(false)
-  end_code_used     Boolean  @default(false)
-  
-  // Status
-  status            String  @default("booked") // booked, charging, completed, no_show
-  
-  // Relations
-  user              User    @relation(fields: [user_id], references: [id])
-  station           Station @relation(fields: [station_id], references: [id])
+  advance_payment_id   String?
+  advance_amount       Decimal?
+  start_code           Int
+  end_code             Int
+  start_code_used      Boolean  @default(false)
+  end_code_used        Boolean  @default(false)
+  status               String   @default("booked")
+  station              Station  @relation(fields: [station_id], references: [id])
+  user                 User     @relation(fields: [user_id], references: [id])
 }
