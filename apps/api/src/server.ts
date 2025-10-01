@@ -1,7 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import stationRoutes from './routes/stations';
-import authRoutes from './routes/auth'; // Add this import
+import authRoutes from './routes/auth';
+import vehicleRoutes from './routes/vehicle';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -12,7 +13,8 @@ app.use(express.json());
 
 // Routes
 app.use('/api/stations', stationRoutes);
-app.use('/api/auth', authRoutes); // Add this line
+app.use('/api/auth', authRoutes); 
+app.use('/api/vehicles', vehicleRoutes)
 
 // Health check
 app.get('/health', (req, res) => {

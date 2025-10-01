@@ -30,12 +30,12 @@ router.post('/google', async (req, res) => {
         where: { email },
         data: { 
           name,
-          // You can update other fields here if needed
+          //can update other fields here if needed
         }
       });
-      console.log('🔄 Updated existing user:', user.id);
+      console.log('Updated existing user:', user.id);
     } else {
-      console.log('🆕 Creating new user...');
+      console.log('Creating new user...');
       // Create new user
       user = await prisma.user.create({
         data: {
@@ -45,7 +45,7 @@ router.post('/google', async (req, res) => {
           phone: null, // Will be null initially
         }
       });
-      console.log('✅ New user created with ID:', user.id);
+      console.log('New user created with ID:', user.id);
     }
 
     res.json({
@@ -60,7 +60,7 @@ router.post('/google', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('❌ Google auth database error:', error);
+    console.error('Google auth database error:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to authenticate with Google',

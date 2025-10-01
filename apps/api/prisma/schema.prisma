@@ -15,6 +15,7 @@ model User {
   phone      String?
   created_at DateTime  @default(now())
   bookings   Booking[]
+  vehicles   Vehicle[] 
 }
 
 model Station {
@@ -27,15 +28,37 @@ model Station {
   bookings      Booking[]
 }
 
+
+model Vehicle {
+  id               Int       @id @default(autoincrement())
+  user_id          Int
+  make             String    // Tata, MG, Tesla, etc.
+  model            String    // Nexon EV, ZS EV, Model 3, etc.
+  year             Int       // 2023, 2024, 2025
+  color            String?   // Optional: Red, Blue, White
+  license_plate    String?   // Optional: KA01AB1234
+  battery_capacity Decimal   // 30.2, 44.5, 75.0 kWh
+  is_primary       Boolean   @default(false) // Primary vehicle for quick selection
+  created_at       DateTime  @default(now())
+  
+  // Relations
+  user             User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  bookings         Booking[] // ✅ NEW: Link to bookings
+  
+  // Indexes for performance
+  @@index([user_id])
+  @@index([user_id, is_primary])
+}
+
 model Booking {
   id                   Int      @id @default(autoincrement())
   user_id              Int
   station_id           Int
+  vehicle_id           Int?   
   token_number         String   @unique
   slot_number          Int
-  vehicle_model        String
-  current_battery      Int
-  target_battery       Int
+  
+
   predicted_duration   Int
   booking_time         DateTime @default(now())
   slot_start_time      DateTime
@@ -48,6 +71,12 @@ model Booking {
   start_code_used      Boolean  @default(false)
   end_code_used        Boolean  @default(false)
   status               String   @default("booked")
+  
+  // Relations
   station              Station  @relation(fields: [station_id], references: [id])
   user                 User     @relation(fields: [user_id], references: [id])
+  vehicle              Vehicle? @relation(fields: [vehicle_id], references: [id], onDelete: SetNull)
+  
+  // Indexes
+  @@index([vehicle_id])
 }
