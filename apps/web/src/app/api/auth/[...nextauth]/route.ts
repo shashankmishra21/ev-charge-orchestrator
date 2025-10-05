@@ -10,12 +10,11 @@ const authOptions = {
   ],
   callbacks: {
     async signIn({ user, account }: any) {
-      console.log('🔐 Google sign-in successful:', user.email);
-      
+      console.log('Google sign-in successful:', user.email);
+      // Tumhe directly user info (email, name, image) aur account info (GoogleId, tokens) mil jaata hai.
       try {
         // Save user to backend database
-        console.log('📡 Calling backend to save user...');
-        
+        // Tumhara fetch() sirf backend ko batane ke liye hai ki “yeh user authenticate ho gaya, ab ise DB me insert/update karo
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`, {
           method: 'POST',
           headers: {
@@ -45,7 +44,7 @@ const authOptions = {
           return false;
         }
       } catch (error) {
-        console.error('❌ Backend authentication error:', error);
+        console.error('Backend authentication error:', error);
         // Allow sign-in to continue even if backend fails (for testing)
         return true;
       }

@@ -7,76 +7,176 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Enums for better type safety
+enum BookingStatus {
+  CONFIRMED
+  IN_PROGRESS  
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
 model User {
-  id         Int       @id @default(autoincrement())
-  email      String    @unique
-  password   String
-  name       String
-  phone      String?
-  created_at DateTime  @default(now())
-  bookings   Booking[]
-  vehicles   Vehicle[] 
+  id                Int                   @id @default(autoincrement())
+  email             String                @unique
+  password          String
+  name              String
+  phone             String?
+  created_at        DateTime              @default(now())
+  
+  // Relations
+  bookings          Booking[]
+  vehicles          Vehicle[]
+  charging_pattern  UserChargingPattern?  // AI user profile
 }
 
 model Station {
-  id            Int       @id @default(autoincrement())
-  name          String
-  address       String
-  total_slots   Int       @default(5)
-  price_per_kwh Decimal   @default(8.00)
-  is_active     Boolean   @default(true)
-  bookings      Booking[]
-}
-
-
-model Vehicle {
-  id               Int       @id @default(autoincrement())
-  user_id          Int
-  make             String    // Tata, MG, Tesla, etc.
-  model            String    // Nexon EV, ZS EV, Model 3, etc.
-  year             Int       // 2023, 2024, 2025
-  color            String?   // Optional: Red, Blue, White
-  license_plate    String?   // Optional: KA01AB1234
-  battery_capacity Decimal   // 30.2, 44.5, 75.0 kWh
-  is_primary       Boolean   @default(false) // Primary vehicle for quick selection
-  created_at       DateTime  @default(now())
+  id                Int                   @id @default(autoincrement())
+  name              String
+  address           String
+  latitude          Decimal               // For map & distance calculation
+  longitude         Decimal               // For map & distance calculation
+  city              String                // For filtering
+  total_slots       Int                   @default(4)
+  price_per_kwh     Decimal               @default(12.00)
+  charging_power    Int                   @default(50)      // kW power for AI duration calc
+  charger_type      String                @default("CCS")   // CCS, CHAdeMO, Type2
+  efficiency_rating Decimal               @default(0.95)    // AI efficiency factor
+  amenities         String[]              @default([])      // ["WiFi", "Cafe", "Parking"]
+  is_active         Boolean               @default(true)
+  created_at        DateTime              @default(now())
   
   // Relations
-  user             User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  bookings         Booking[] // ✅ NEW: Link to bookings
+  bookings          Booking[]
+  utilization_logs  StationUtilization[]  // For AI queue prediction
   
-  // Indexes for performance
+  // Indexes for AI queries
+  @@index([latitude, longitude])
+  @@index([city])
+}
+
+model Vehicle {
+  id                    Int       @id @default(autoincrement())
+  user_id               Int
+  make                  String    // Tata, Tesla, MG
+  model                 String    // Nexon EV, Model 3, ZS EV
+  year                  Int       
+  color                 String?
+  license_plate         String?
+  battery_capacity      Decimal   // kWh - Keep for AI
+  charging_efficiency   Decimal   @default(0.90)     // AI efficiency factor
+  max_charging_power    Int       @default(50)       // Max kW for duration calc
+  vehicle_range         Int       @default(400)      // km range for AI recommendations
+  charging_curve_type   String    @default("standard") // fast/standard/slow
+  is_primary            Boolean   @default(false)
+  created_at            DateTime  @default(now())
+  
+  // Relations
+  user                  User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  bookings              Booking[]
+  
+  // Indexes
   @@index([user_id])
   @@index([user_id, is_primary])
 }
 
 model Booking {
-  id                   Int      @id @default(autoincrement())
+  id                   Int           @id @default(autoincrement())
   user_id              Int
   station_id           Int
   vehicle_id           Int?   
-  token_number         String   @unique
-  slot_number          Int
   
-
-  predicted_duration   Int
-  booking_time         DateTime @default(now())
-  slot_start_time      DateTime
-  arrival_window_start DateTime
-  arrival_window_end   DateTime
-  advance_payment_id   String?
-  advance_amount       Decimal?
-  start_code           Int
-  end_code             Int
-  start_code_used      Boolean  @default(false)
-  end_code_used        Boolean  @default(false)
-  status               String   @default("booked")
+  // Time & Duration (Simplified)
+  booking_date         DateTime      // Just date (2024-10-05)
+  start_time           DateTime      // Start time (2024-10-05 14:00:00)
+  duration_minutes     Int           // Duration in minutes (60, 90, 120)
+  end_time             DateTime      // Calculated end time
+  
+  // AI Predictions
+  predicted_duration   Int           // AI predicted duration
+  predicted_cost       Decimal?      // AI predicted cost
+  predicted_energy     Decimal?      // AI predicted kWh consumption
+  
+  // Session Data
+  actual_start_time    DateTime?     // When charging actually started
+  actual_end_time      DateTime?     // When charging actually ended
+  actual_energy_used   Decimal?      // Actual kWh consumed
+  actual_cost          Decimal?      // Final cost
+  
+  // OTP System (Simplified)
+  start_otp            String        // 4-digit OTP
+  end_otp              String        // 4-digit OTP  
+  start_otp_used       Boolean       @default(false)
+  end_otp_used         Boolean       @default(false)
+  
+  // Status
+  status               BookingStatus @default(CONFIRMED)
+  payment_status       PaymentStatus @default(PENDING)
+  
+  booking_time         DateTime      @default(now())
   
   // Relations
-  station              Station  @relation(fields: [station_id], references: [id])
-  user                 User     @relation(fields: [user_id], references: [id])
-  vehicle              Vehicle? @relation(fields: [vehicle_id], references: [id], onDelete: SetNull)
+  station              Station       @relation(fields: [station_id], references: [id])
+  user                 User          @relation(fields: [user_id], references: [id])
+  vehicle              Vehicle?      @relation(fields: [vehicle_id], references: [id], onDelete: SetNull)
+  ai_predictions       AIPrediction[] // AI model predictions
   
-  // Indexes
-  @@index([vehicle_id])
+  // Indexes for AI queries
+  @@index([station_id, booking_date])
+  @@index([user_id, booking_time])
+  @@index([booking_date, start_time])
+}
+
+// AI-Specific Tables
+
+model StationUtilization {
+  id              Int      @id @default(autoincrement())
+  station_id      Int
+  date            DateTime
+  hour            Int      // 0-23
+  utilization     Decimal  // 0.0 to 1.0 (percentage as decimal)
+  avg_wait_time   Int      // Minutes
+  total_sessions  Int      // Number of charging sessions
+  
+  station         Station  @relation(fields: [station_id], references: [id])
+  
+  @@unique([station_id, date, hour])
+  @@index([station_id, date])
+}
+
+model UserChargingPattern {
+  id                     Int      @id @default(autoincrement())
+  user_id                Int
+  preferred_hour         Int?     // Most common charging hour
+  preferred_day_of_week  Int?     // 0=Sunday, 6=Saturday
+  avg_session_duration   Int?     // Average minutes
+  cost_sensitivity       Decimal  @default(0.5) // 0.0=price insensitive, 1.0=very price sensitive
+  preferred_stations     Int[]    @default([])   // Array of station IDs
+  updated_at             DateTime @default(now()) @updatedAt
+  
+  user                   User     @relation(fields: [user_id], references: [id])
+  
+  @@unique([user_id])
+}
+
+model AIPrediction {
+  id                Int      @id @default(autoincrement())
+  booking_id        Int
+  prediction_type   String   // "duration", "cost", "queue_time"
+  predicted_value   Decimal  // Predicted value
+  actual_value      Decimal? // Actual value (filled later)
+  accuracy_score    Decimal? // How accurate was prediction
+  model_version     String   @default("v1.0")
+  created_at        DateTime @default(now())
+  
+  booking           Booking  @relation(fields: [booking_id], references: [id])
+  
+  @@index([prediction_type, created_at])
 }

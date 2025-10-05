@@ -9,7 +9,7 @@ router.post('/google', async (req, res) => {
   try {
     const { email, name, image, googleId } = req.body;
     
-    console.log('🔐 Google auth request received:', { email, name });
+    console.log('Google auth request received:', { email, name });
 
     if (!email || !name) {
       return res.status(400).json({
@@ -24,7 +24,7 @@ router.post('/google', async (req, res) => {
     });
 
     if (user) {
-      console.log('👤 Existing user found:', user.id);
+      console.log('Existing user found:', user.id);
       // Update existing user name if changed
       user = await prisma.user.update({
         where: { email },
@@ -69,4 +69,5 @@ router.post('/google', async (req, res) => {
   }
 });
 
-export default router;
+export default router; 
+//default name h yeh. Hum ise kuch bh naam de skte h jab hum import krenge for ex -server.ts me - import authRouth from "./routes/auth"

@@ -1,181 +1,254 @@
+// apps/web/src/app/page.tsx
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import Link from 'next/link';
-import Navbar from '@/components/Navbar';
+import { useRouter } from 'next/navigation';
+import Header from './components/layout/Header';
+import Footer from './components/layout/Footer';
+import { 
+  BoltIcon, 
+  SparklesIcon, 
+  ChartBarIcon,
+  MapPinIcon,
+  ClockIcon,
+  CurrencyRupeeIcon
+} from '@heroicons/react/24/outline';
 
-export default function LandingPage() {
-  const { data: session, status } = useSession();
+export default function HomePage() {
+  const { data: session } = useSession();
+  const router = useRouter();
+  const [stats, setStats] = useState({
+    totalStations: 5,
+    availableNow: 3,
+    avgSavings: 25
+  });
 
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
+  const handleGetStarted = () => {
+    if (session) {
+      router.push('/stations');
+    } else {
+      router.push('/auth/signin');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      <Navbar />
+      <Header />
       
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Hero Section */}
-        <div className="pt-16 pb-20 text-center">
-          <div className="max-w-4xl mx-auto">
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              ⚡ Smart EV Charging
-              <span className="block text-blue-600 mt-2">Made Simple</span>
+      {/* Hero Section */}
+      <section className="relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
+          <div className="text-center">
+            <div className="flex justify-center mb-8">
+              <div className="relative">
+                <div className="w-24 h-24 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl flex items-center justify-center mb-6 transform rotate-12">
+                  <BoltIcon className="h-12 w-12 text-white transform -rotate-12" />
+                </div>
+                <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
+                  <SparklesIcon className="h-4 w-4 text-yellow-800" />
+                </div>
+              </div>
+            </div>
+            
+            <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
+              Smart EV Charging
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+                Orchestrator
+              </span>
             </h1>
             
-            <p className="text-lg md:text-xl text-gray-700 mb-10 leading-relaxed max-w-3xl mx-auto">
-              Book charging slots, manage your vehicles, and power up your EV journey 
-              with our intelligent AI-powered platform
+            <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
+              AI-powered charging station management with predictive scheduling, 
+              dynamic pricing, and intelligent queue optimization.
             </p>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-              {session ? (
-                <>
-                  <Link
-                    href="/stations"
-                    className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-                  >
-                    ⚡ Browse Stations
-                  </Link>
-                  <Link
-                    href="/new-booking"
-                    className="bg-green-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-green-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-                  >
-                    📅 Quick Booking
-                  </Link>
-                </>
-              ) : (
-                <Link
-                  href="/auth/signin"
-                  className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-                >
-                  🚀 Get Started Free
-                </Link>
-              )}
+            <div className="flex flex-col sm:flex-row justify-center gap-4 mb-12">
+              <button
+                onClick={handleGetStarted}
+                className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-2xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+              >
+                {session ? 'Find Stations' : 'Get Started'}
+              </button>
+              
+              <button
+                onClick={() => router.push('/stations')}
+                className="px-8 py-4 bg-white text-gray-700 font-semibold rounded-2xl border-2 border-gray-200 hover:border-blue-300 hover:text-blue-600 transition-all duration-300"
+              >
+                Explore Stations
+              </button>
+            </div>
+
+            {/* Live Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+              <div className="bg-white/60 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+                <div className="text-3xl font-bold text-blue-600 mb-2">{stats.totalStations}</div>
+                <div className="text-gray-600">Active Stations</div>
+              </div>
+              
+              <div className="bg-white/60 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+                <div className="text-3xl font-bold text-green-600 mb-2">{stats.availableNow}</div>
+                <div className="text-gray-600">Available Now</div>
+              </div>
+              
+              <div className="bg-white/60 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+                <div className="text-3xl font-bold text-purple-600 mb-2">{stats.avgSavings}%</div>
+                <div className="text-gray-600">Avg AI Savings</div>
+              </div>
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Features Section */}
-        <div className="grid md:grid-cols-3 gap-8 mb-20">
-          <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 text-center">
-            <div className="text-5xl mb-6">🧠</div>
-            <h3 className="text-xl font-bold mb-4 text-gray-900">AI-Powered Booking</h3>
-            <p className="text-gray-600 leading-relaxed">
-              Smart recommendations for optimal charging times, stations, and duration based on your patterns
-            </p>
-          </div>
-
-          <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 text-center">
-            <div className="text-5xl mb-6">📍</div>
-            <h3 className="text-xl font-bold mb-4 text-gray-900">5 Premium Stations</h3>
-            <p className="text-gray-600 leading-relaxed">
-              High-speed charging stations across the city with real-time availability and competitive pricing
-            </p>
-          </div>
-
-          <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 text-center">
-            <div className="text-5xl mb-6">💳</div>
-            <h3 className="text-xl font-bold mb-4 text-gray-900">Seamless Payments</h3>
-            <p className="text-gray-600 leading-relaxed">
-              Secure Stripe integration, transparent pricing at ₹150/hour, no hidden fees or surprises
-            </p>
-          </div>
-        </div>
-
-        {/* User Dashboard - Only if logged in */}
-        {session && (
-          <div className="bg-white rounded-2xl shadow-lg p-8 mb-16">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                Welcome back, {session.user?.name?.split(' ')[0]}! 👋
-              </h2>
-              <p className="text-gray-600">Here's your charging overview</p>
-            </div>
-            
-            <div className="grid md:grid-cols-4 gap-6 mb-8">
-              <div className="text-center p-4 bg-blue-50 rounded-xl">
-                <div className="text-3xl font-bold text-blue-600 mb-1">0</div>
-                <div className="text-sm text-gray-600">Active Bookings</div>
-              </div>
-              <div className="text-center p-4 bg-green-50 rounded-xl">
-                <div className="text-3xl font-bold text-green-600 mb-1">0</div>
-                <div className="text-sm text-gray-600">Completed Sessions</div>
-              </div>
-              <div className="text-center p-4 bg-purple-50 rounded-xl">
-                <div className="text-3xl font-bold text-purple-600 mb-1">0</div>
-                <div className="text-sm text-gray-600">Vehicles Saved</div>
-              </div>
-              <div className="text-center p-4 bg-orange-50 rounded-xl">
-                <div className="text-3xl font-bold text-orange-600 mb-1">₹0</div>
-                <div className="text-sm text-gray-600">Total Spent</div>
-              </div>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="grid md:grid-cols-2 gap-4">
-              <Link
-                href="/stations"
-                className="flex items-center space-x-4 p-6 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl hover:from-blue-100 hover:to-blue-200 transition-all duration-300 group"
-              >
-                <span className="text-3xl group-hover:scale-110 transition-transform">⚡</span>
-                <div>
-                  <div className="font-bold text-gray-900">Browse Stations</div>
-                  <div className="text-sm text-gray-600">Find nearby charging stations</div>
-                </div>
-              </Link>
-
-              <Link
-                href="/vehicle-info"
-                className="flex items-center space-x-4 p-6 bg-gradient-to-r from-green-50 to-green-100 rounded-xl hover:from-green-100 hover:to-green-200 transition-all duration-300 group"
-              >
-                <span className="text-3xl group-hover:scale-110 transition-transform">🚗</span>
-                <div>
-                  <div className="font-bold text-gray-900">Manage Vehicles</div>
-                  <div className="text-sm text-gray-600">Add your EV information</div>
-                </div>
-              </Link>
-            </div>
-          </div>
-        )}
-
-        {/* Bottom CTA */}
-        {!session && (
+      {/* Features Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white">
-              <h2 className="text-2xl font-bold mb-4">Ready to Start Charging Smarter?</h2>
-              <p className="text-blue-100 mb-6">Join thousands of EV owners who trust our platform</p>
-              <Link
-                href="/auth/signin"
-                className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors inline-block"
-              >
-                Sign In with Google →
-              </Link>
-            </div>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Powered by Artificial Intelligence
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Our AI orchestrator optimizes every aspect of your charging experience
+            </p>
           </div>
-        )}
-      </main>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 py-12">
-          <div className="text-center">
-            <div className="text-2xl mb-4">⚡ EV Orchestrator</div>
-            <p className="text-gray-400 mb-4">
-              Making electric vehicle charging simple, smart, and accessible for everyone.
-            </p>
-            <p className="text-sm text-gray-500">
-              © 2025 EV Orchestrator. Built with ❤️ for sustainable transportation.
-            </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <FeatureCard
+              icon={<SparklesIcon className="h-8 w-8" />}
+              title="Smart Duration Prediction"
+              description="AI predicts optimal charging time based on your vehicle and current battery level"
+              color="blue"
+            />
+            
+            <FeatureCard
+              icon={<CurrencyRupeeIcon className="h-8 w-8" />}
+              title="Dynamic Pricing"
+              description="Real-time pricing optimization based on demand, time, and grid conditions"
+              color="green"
+            />
+            
+            <FeatureCard
+              icon={<ClockIcon className="h-8 w-8" />}
+              title="Queue Prediction"
+              description="LSTM models predict wait times and suggest optimal charging windows"
+              color="purple"
+            />
+            
+            <FeatureCard
+              icon={<ChartBarIcon className="h-8 w-8" />}
+              title="Smart Recommendations"
+              description="Personalized suggestions based on your charging patterns and preferences"
+              color="indigo"
+            />
           </div>
         </div>
-      </footer>
+      </section>
+
+      {/* How It Works */}
+      <section className="py-20 bg-gradient-to-br from-gray-50 to-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              How It Works
+            </h2>
+            <p className="text-xl text-gray-600">
+              Simple, intelligent, and efficient charging in just a few steps
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <StepCard
+              step={1}
+              title="Find & Select"
+              description="Browse AI-optimized stations with real-time availability and smart recommendations"
+              icon={<MapPinIcon className="h-8 w-8" />}
+            />
+            
+            <StepCard
+              step={2}
+              title="AI Optimization"
+              description="Our AI predicts optimal charging duration, cost, and suggests the best time slots"
+              icon={<SparklesIcon className="h-8 w-8" />}
+            />
+            
+            <StepCard
+              step={3}
+              title="Smart Charging"
+              description="Enjoy optimized charging with predictive queue management and dynamic pricing"
+              icon={<BoltIcon className="h-8 w-8" />}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-gradient-to-r from-blue-600 to-indigo-600">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-4xl font-bold text-white mb-6">
+            Ready to Experience Smart Charging?
+          </h2>
+          <p className="text-xl text-blue-100 mb-8">
+            Join thousands of EV drivers who save time and money with our AI-powered platform
+          </p>
+          
+          <button
+            onClick={handleGetStarted}
+            className="px-8 py-4 bg-white text-blue-600 font-semibold rounded-2xl hover:bg-gray-50 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+          >
+            {session ? 'Start Charging Smart' : 'Sign Up Now'}
+          </button>
+        </div>
+      </section>
+
+      <Footer />
+    </div>
+  );
+}
+
+// Feature Card Component
+function FeatureCard({ icon, title, description, color }: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  color: 'blue' | 'green' | 'purple' | 'indigo';
+}) {
+  const colorClasses = {
+    blue: 'bg-blue-100 text-blue-600 border-blue-200',
+    green: 'bg-green-100 text-green-600 border-green-200',
+    purple: 'bg-purple-100 text-purple-600 border-purple-200',
+    indigo: 'bg-indigo-100 text-indigo-600 border-indigo-200'
+  };
+
+  return (
+    <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+      <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 border-2 ${colorClasses[color]}`}>
+        {icon}
+      </div>
+      <h3 className="text-xl font-bold text-gray-900 mb-4">{title}</h3>
+      <p className="text-gray-600 leading-relaxed">{description}</p>
+    </div>
+  );
+}
+
+// Step Card Component
+function StepCard({ step, title, description, icon }: {
+  step: number;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <div className="relative">
+      <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200 text-center">
+        <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-lg mx-auto mb-4">
+          {step}
+        </div>
+        <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-6 text-gray-600">
+          {icon}
+        </div>
+        <h3 className="text-xl font-bold text-gray-900 mb-4">{title}</h3>
+        <p className="text-gray-600 leading-relaxed">{description}</p>
+      </div>
     </div>
   );
 }
