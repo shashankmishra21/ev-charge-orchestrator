@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Header from '../components/layout/Header';
 import StationCard from '../components/stations/StationCard';
-import StationFilters from '../components/stations/StationFilters';
+import StationFilters from '../components/stations/StationFilter';
 import LoadingScreen from '../components/ui/LoadingScreen';
 import ErrorScreen from '../components/ui/ErrorScreen';
 import { stationAPI, StationWithAI } from '../lib/api';
